@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">NextTodoApp</string>
+    <string name="main_title">Todo App</string>
+    <string name="add_string_hint">追加するタスクを入力</string>
+    <string name="add_button">追加</string>
+    <string name="yes">Yes</string>
+</resources>
