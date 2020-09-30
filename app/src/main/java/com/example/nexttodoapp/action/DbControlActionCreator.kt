@@ -23,15 +23,14 @@ class DbControlActionCreator(private val dispatcher:Dispatcher,private val corou
         }
     }
 
-
     private suspend fun createAction(mode:ActionMode,position:Int?,taskName: String?,context: Context){
-
+        //modeでactionの制御
         val result = when(mode){
             ActionMode.INSERT -> taskName?.let { RoomUseCase.insertRoom(it, context) }
             ActionMode.DELETE -> taskName?.let { position?.let { it1 -> RoomUseCase.deleteRoom(it1, it, context)} }
             ActionMode.GET ->  RoomUseCase.getRoom(context)
         }
-
+        //resultStateの格納
         val resultState = when(result){
             is RoomUseCase.RoomResult.SuccessInsert -> DbControlActionState.SuccessInsert(result.taskName)
             is RoomUseCase.RoomResult.SuccessDelete -> DbControlActionState.SuccessDelete(result.position)
@@ -40,6 +39,7 @@ class DbControlActionCreator(private val dispatcher:Dispatcher,private val corou
             else -> null
         }
 
+        //dispatchにactionを送る
         coroutineScope.launch(Dispatchers.Main) {
             resultState?.let { dispatcher.dispatch(DbControlAction(it)) }
             Log.d(TAG,"dispatch")

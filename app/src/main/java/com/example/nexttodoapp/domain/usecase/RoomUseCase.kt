@@ -18,9 +18,11 @@ object RoomUseCase {
         object Failed:RoomResult()
     }
 
+    //DBにinsert
     suspend fun insertRoom(taskName: String,context: Context):RoomResult{
         Log.d("Room","insert")
         try{
+            //daoの生成
             val dao = Room.databaseBuilder(context,TaskDb::class.java, DB_NAME).build()
             val indexCount = dao.taskDao().getCount()
             dao.taskDao().insert(Task(id = indexCount+1,taskName = taskName))
@@ -30,6 +32,7 @@ object RoomUseCase {
         }
     }
 
+    //DBの要素のdelete
     suspend fun deleteRoom(position:Int,taskName: String,context: Context):RoomResult{
         Log.d("Room","delete")
         try{

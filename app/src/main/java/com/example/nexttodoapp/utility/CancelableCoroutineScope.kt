@@ -7,6 +7,7 @@ import kotlin.coroutines.CoroutineContext
 
 class CancelableCoroutineScope : CoroutineScope {
 
+    //coroutineのJob
     private val job = Job()
 
     override val coroutineContext: CoroutineContext

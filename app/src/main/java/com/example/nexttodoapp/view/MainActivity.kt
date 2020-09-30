@@ -48,21 +48,31 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         val addButton = findViewById<Button>(R.id.addButton)
         addButton.setOnClickListener(this)
 
+        //storeのLiveDataの監視
         mTodoListStore.actionData.observe(this, Observer<DbControlActionState> { _ ->
             Log.d("activity","observe")
+            //Adapterの変更
             mAdapter.notifyDataSetChanged()
             val edit = findViewById<EditText>(R.id.addTask)
             edit.setText("")
         })
 
+        //初期データの取得
         mDbControlActionCreator.execute(ActionMode.GET,null,null,this)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineScope.cancel()
+    }
+
+    //addButtonのClickイベントの実装
     override fun onClick(v: View?) {
         val edit = findViewById<EditText>(R.id.addTask)
         mDbControlActionCreator.execute(ActionMode.INSERT,null,edit.text.toString(),this)
     }
 
+    //Dialogでのremoveの確認
     fun createDialog(position: Int, item: String) {
         AlertDialog.Builder(this).apply {
             setTitle("確認")

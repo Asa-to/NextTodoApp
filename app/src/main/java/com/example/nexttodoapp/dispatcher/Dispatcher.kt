@@ -8,6 +8,7 @@ class Dispatcher {
 
     private val listeners = Collections.synchronizedList(mutableListOf<ActionListener>())
 
+    //送られてきたactionをstoreに送る
     fun dispatch(action: DbControlAction){
         listeners.forEach{it.on(action)}
         Log.d("dispatcher","on")
@@ -21,6 +22,7 @@ class Dispatcher {
         listeners.remove(listener)
     }
 
+    //actionを送るためのinterface
     interface ActionListener{
         fun on(action: DbControlAction)
     }
