@@ -66,13 +66,12 @@ class MainActivity : AppCompatActivity(),View.OnClickListener,TodoAdapter.LongCl
         mDbControlActionCreator.execute(ActionMode.INSERT,null,edit.text.toString(),this)
     }
 
-    override fun itemLongClickListener(position: Int,id:Long, item: String) {
-        Log.d("item long click",position.toString())
-        createDialog(position,id, item)
+    override fun itemLongClickListener(id:Long, item: String) {
+        createDialog(id, item)
     }
 
     //Dialogでのremoveの確認
-    private fun createDialog(position: Int,id: Long, item: String) {
+    private fun createDialog(id: Long, item: String) {
         AlertDialog.Builder(this).apply {
             setTitle("確認")
             setMessage("${item}を削除しますか")

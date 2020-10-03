@@ -32,7 +32,7 @@ class TodoAdapter(): RecyclerView.Adapter<TodoAdapter.ViewHolder>() {
         holder.view.todo_element.text = mStore.todoList[position].taskName
         // クリック時の処理
         holder.view.todo_element.setOnLongClickListener() {
-            mListener.itemLongClickListener(position,mStore.todoList[position].id, mStore.todoList[position].taskName)
+            mListener.itemLongClickListener(mStore.todoList[position].id, mStore.todoList[position].taskName)
             true
         }
     }
@@ -41,7 +41,7 @@ class TodoAdapter(): RecyclerView.Adapter<TodoAdapter.ViewHolder>() {
     override fun getItemCount(): Int = mStore.todoList.size
     // クリックリスナー用インターフェースの用意
     interface LongClickListener {
-        fun itemLongClickListener(position: Int,id:Long, item: String)
+        fun itemLongClickListener(id:Long, item: String)
     }
 
     // クリックリスナーの実装をするためのメソッド
