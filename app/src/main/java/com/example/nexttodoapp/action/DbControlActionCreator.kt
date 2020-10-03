@@ -2,6 +2,7 @@ package com.example.nexttodoapp.action
 
 import android.content.Context
 import android.util.Log
+import androidx.room.Room
 import com.example.nexttodoapp.dispatcher.Dispatcher
 import com.example.nexttodoapp.domain.usecase.RoomUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -16,32 +17,37 @@ class DbControlActionCreator(private val dispatcher:Dispatcher,private val corou
 
     private val TAG = "ActionCreator"
 
-    fun execute(mode:ActionMode,position: Int?,taskName:String?,context: Context){
+    fun execute(mode:ActionMode, id : Long?,taskName:String?,context: Context){
         coroutineScope.launch(Dispatchers.Default){
-            createAction(mode, position, taskName, context)
+            createAction(mode, id, taskName,context)
             Log.d(TAG,"execute launch createAction")
         }
     }
 
-    private suspend fun createAction(mode:ActionMode,position:Int?,taskName: String?,context: Context){
+    private suspend fun createAction(mode:ActionMode,id:Long?,taskName: String?,context:Context){
         //modeでactionの制御
-        val result = when(mode){
-            ActionMode.INSERT -> taskName?.let { RoomUseCase.insertRoom(it, context) }
-            ActionMode.DELETE -> taskName?.let { position?.let { it1 -> RoomUseCase.deleteRoom(it1, it, context)} }
-            ActionMode.GET ->  RoomUseCase.getRoom(context)
+        Log.d("action create","mode = ${mode.toString()}")
+
+        val result:RoomUseCase.RoomResult = when(mode){
+            ActionMode.INSERT -> RoomUseCase().insertRoom(taskName!!,context)
+            ActionMode.DELETE -> RoomUseCase().deleteRoom(id!!,taskName!!,context)
+            ActionMode.GET ->  RoomUseCase().getRoom(context)
         }
+
+        Log.d("action create",result.toString())
         //resultStateの格納
         val resultState = when(result){
-            is RoomUseCase.RoomResult.SuccessInsert -> DbControlActionState.SuccessInsert(result.taskName)
-            is RoomUseCase.RoomResult.SuccessDelete -> DbControlActionState.SuccessDelete(result.position)
+            is RoomUseCase.RoomResult.SuccessInsert -> DbControlActionState.SuccessInsert(result.todoItem)
+            is RoomUseCase.RoomResult.SuccessDelete -> DbControlActionState.SuccessDelete(result.todoItem)
             is RoomUseCase.RoomResult.SuccessData -> DbControlActionState.SuccessData(result.tasks)
             is RoomUseCase.RoomResult.Failed -> DbControlActionState.Failed
-            else -> null
         }
+
+        Log.d("action create",resultState.toString())
 
         //dispatchにactionを送る
         coroutineScope.launch(Dispatchers.Main) {
-            resultState?.let { dispatcher.dispatch(DbControlAction(it)) }
+            dispatcher.dispatch(DbControlAction(resultState))
             Log.d(TAG,"dispatch")
         }
     }

@@ -18,11 +18,11 @@ import com.example.nexttodoapp.dispatcher.Dispatcher
 import com.example.nexttodoapp.store.TodoListStore
 import com.example.nexttodoapp.utility.CancelableCoroutineScope
 
-class MainActivity : AppCompatActivity(),View.OnClickListener {
+class MainActivity : AppCompatActivity(),View.OnClickListener,TodoAdapter.LongClickListener {
     // メンバ変数にはmを付けてる
     private val coroutineScope = CancelableCoroutineScope()
     private val dispatcher = Dispatcher()
-    private val mDbControlActionCreator = DbControlActionCreator(dispatcher, coroutineScope)
+    private val mDbControlActionCreator:DbControlActionCreator = DbControlActionCreator(dispatcher,coroutineScope)
     private val mTodoListStore = TodoListStore(dispatcher)
     private val mAdapter = TodoAdapter(mTodoListStore)
 
@@ -37,13 +37,7 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         recyclerView.setHasFixedSize(true)
         recyclerView.adapter = mAdapter
         // クリック処理インターフェースを実装
-        mAdapter.apply {
-            setOnLongClickListener(object : TodoAdapter.LongClickListener {
-                override fun itemLongClickListener(position: Int, item: String) {
-                    createDialog(position, item)
-                }
-            })
-        }
+        mAdapter.setOnLongClickListener(this)
 
         val addButton = findViewById<Button>(R.id.addButton)
         addButton.setOnClickListener(this)
@@ -72,13 +66,18 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         mDbControlActionCreator.execute(ActionMode.INSERT,null,edit.text.toString(),this)
     }
 
+    override fun itemLongClickListener(position: Int,id:Long, item: String) {
+        Log.d("item long click",position.toString())
+        createDialog(position,id, item)
+    }
+
     //Dialogでのremoveの確認
-    fun createDialog(position: Int, item: String) {
+    private fun createDialog(position: Int,id: Long, item: String) {
         AlertDialog.Builder(this).apply {
             setTitle("確認")
             setMessage("${item}を削除しますか")
             setPositiveButton("はい") { _, _ ->
-                mDbControlActionCreator.execute(ActionMode.DELETE,position,item,this@MainActivity)
+                mDbControlActionCreator.execute(ActionMode.DELETE,id,item,this@MainActivity)
             }
             setNegativeButton("いいえ") { dialog, _ ->
                 dialog.dismiss()

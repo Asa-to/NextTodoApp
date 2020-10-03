@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.example.nexttodoapp.action.DbControlAction
 import com.example.nexttodoapp.action.DbControlActionState
 import com.example.nexttodoapp.dispatcher.Dispatcher
+import com.example.nexttodoapp.domain.usecase.TodoItem
 
 class TodoListStore(private val dispatcher: Dispatcher):ViewModel(),Dispatcher.ActionListener{
 
@@ -15,20 +16,29 @@ class TodoListStore(private val dispatcher: Dispatcher):ViewModel(),Dispatcher.A
         Log.d("store","init")
     }
 
+
     val actionData: LiveData<DbControlActionState> = MutableLiveData<DbControlActionState>().apply { value = DbControlActionState.None }
-    val todoList:ArrayList<String> = ArrayList()
+    val todoList:ArrayList<TodoItem> = ArrayList<TodoItem>()
 
     private fun update(action: DbControlAction){
         Log.d("store","update")
-        (actionData as MutableLiveData<DbControlActionState>).value = action.state
+        Log.d("store",action.toString())
         when(action.state){
-            is DbControlActionState.SuccessInsert -> todoList.add(action.state.taskName)
-            is DbControlActionState.SuccessDelete -> todoList.removeAt(action.state.position)
+            is DbControlActionState.SuccessInsert -> {
+                Log.d("store","insertAt auto generated data ${action.state.todoItem.taskName}")
+                todoList.add(action.state.todoItem)
+            }
+            is DbControlActionState.SuccessDelete -> {
+                Log.d("store","deleteAt ${action.state.todoItem.id} data ${action.state.todoItem.taskName}")
+                todoList.removeAt(todoList.indexOf(action.state.todoItem))
+            }
             is DbControlActionState.SuccessData -> {
                 todoList.clear()
                 todoList.addAll(action.state.tasks)
             }
         }
+        (actionData as MutableLiveData<DbControlActionState>).value = action.state
+        Log.d("store",todoList.toString())
     }
 
     override fun onCleared() {

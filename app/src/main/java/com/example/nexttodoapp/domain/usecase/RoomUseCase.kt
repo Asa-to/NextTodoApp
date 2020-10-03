@@ -2,59 +2,58 @@ package com.example.nexttodoapp.domain.usecase
 
 import android.content.Context
 import android.util.Log
-import androidx.room.Room
 import com.example.nexttodoapp.domain.models.TaskDb
 import com.example.nexttodoapp.domain.models.dao.entity.Task
 
 
-object RoomUseCase {
+class RoomUseCase {
 
-    private const val DB_NAME = "todo-list"
-
-    sealed class RoomResult{
-        class SuccessInsert(val taskName:String):RoomResult()
-        class SuccessDelete(val position:Int):RoomResult()
-        class SuccessData(val tasks:ArrayList<String>):RoomResult()
-        object Failed:RoomResult()
+    sealed class RoomResult {
+        class SuccessInsert(val todoItem: TodoItem) : RoomResult()
+        class SuccessDelete(val todoItem: TodoItem) : RoomResult()
+        class SuccessData(val tasks: ArrayList<TodoItem>) : RoomResult()
+        object Failed : RoomResult()
     }
 
     //DBにinsert
-    suspend fun insertRoom(taskName: String,context: Context):RoomResult{
-        Log.d("Room","insert")
-        try{
+    suspend fun insertRoom(taskName: String,context: Context): RoomResult {
+        Log.d("Room", "insert")
+        try {
             //daoの生成
-            val dao = Room.databaseBuilder(context,TaskDb::class.java, DB_NAME).build()
-            val indexCount = dao.taskDao().getCount()
-            dao.taskDao().insert(Task(id = indexCount+1,taskName = taskName))
-            return RoomResult.SuccessInsert(taskName)
-        }catch (t:Throwable){
+            val dao = TaskDb.getDatabase(context).taskDao()
+            val id = dao.insert(Task(id = 0,taskName = taskName))
+            val taskId = dao.find(taskName)
+            return RoomResult.SuccessInsert(TodoItem(id = id, taskName = taskName))
+        } catch (t: Throwable) {
             return RoomResult.Failed
         }
     }
 
     //DBの要素のdelete
-    suspend fun deleteRoom(position:Int,taskName: String,context: Context):RoomResult{
-        Log.d("Room","delete")
-        try{
-            val dao = Room.databaseBuilder(context,TaskDb::class.java, DB_NAME).build()
-            dao.taskDao().delete(Task(id = position,taskName = taskName))
-            return RoomResult.SuccessDelete(position)
-        }catch (t:Throwable){
+    suspend fun deleteRoom(id: Long, taskName: String,context: Context): RoomResult {
+        Log.d("Room", "delete")
+        try {
+            val dao = TaskDb.getDatabase(context).taskDao()
+            dao.deleteAt(id = id)
+            return RoomResult.SuccessDelete(TodoItem(id = id, taskName = taskName))
+        } catch (t: Throwable) {
             return RoomResult.Failed
         }
     }
 
-    suspend fun getRoom(context: Context):RoomResult{
-        Log.d("Room","get")
-        try{
-            val dao = Room.databaseBuilder(context,TaskDb::class.java, DB_NAME).build()
-            val tasks = arrayListOf<String>()
-            dao.taskDao().getAll().forEach {
-                tasks.add(it.taskName.toString())
+    suspend fun getRoom(context: Context): RoomResult {
+        Log.d("Room", "get")
+        try {
+            val tasks = arrayListOf<TodoItem>()
+            val dao = TaskDb.getDatabase(context).taskDao()
+            dao.getAll().forEach {
+                val item = TodoItem(id = it.id, taskName = it.taskName!!)
+                tasks.add(item)
             }
             return RoomResult.SuccessData(tasks)
-        }catch (t:Throwable){
+        } catch (t: Throwable) {
             return RoomResult.Failed
         }
     }
+
 }
